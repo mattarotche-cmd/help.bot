@@ -23,14 +23,16 @@ Rules:
 - Keep answers short (3-5 lines)
 - Reply in the same language the worker writes in
 - For emergencies always give helpline numbers first
-- Say "check with your embassy" for specific legal advice`;
+- Say check with your embassy for specific legal advice`;
 
 app.post('/webhook', async (req, res) => {
   try {
     const userText = req.body.Body;
     const from = req.body.From;
 
-    if (!userText) return res.sendStatus(200);
+    if (!userText) {
+      return res.type('text/xml').send('<Response></Response>');
+    }
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -53,7 +55,7 @@ app.post('/webhook', async (req, res) => {
       {
         method: 'POST',
         headers: {
-          'Authorization': 'Basic ' + 
+          'Authorization': 'Basic ' +
             Buffer.from(`${ACCOUNT_SID}:${AUTH_TOKEN}`).toString('base64'),
           'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -65,9 +67,13 @@ app.post('/webhook', async (req, res) => {
       }
     );
 
-    res.sendStatus(200);
+    res.type('text/xml').send('<Response></Response>');
+
   } catch (err) {
     console.error(err);
-    res.sendStatus(500);
+    res.type('text/xml').send('<Response></Response>');
   }
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Bot running on port ${PORT}`));
